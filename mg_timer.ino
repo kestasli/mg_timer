@@ -17,6 +17,10 @@ const int COUNTER_DELAY = 5000000;
 unsigned long intervalStart = 0;
 unsigned long intervalEnd = 0;
 
+unsigned long timePoint = 0;
+unsigned long timePointPrev = 0;
+
+
 bool timerState = false;
 bool intervalState = false;
 
@@ -29,8 +33,8 @@ void setup() {
   tft.begin();
   tft.setRotation(1);
   counter.createSprite(SCREEN_W, SCREEN_H);
-  //counter.setFreeFont(&FreeSansBold56pt7b);
-  counter.setFreeFont(&FreeMonoBold24pt7b);
+  counter.setFreeFont(&FreeSansBold56pt7b);
+  //counter.setFreeFont(&FreeMonoBold24pt7b);
   counter.setTextColor(TFT_WHITE);
   counter.setTextDatum(CC_DATUM);
 
@@ -44,30 +48,33 @@ void loop() {
   unsigned int intervalStart_prev;
 
   counter.fillSprite(TFT_BLACK);
-  
-  if ((intervalEnd - intervalStart) < COUNTER_DELAY) timerState = true;
+
+  //if ((intervalEnd - intervalStart) < COUNTER_DELAY) timerState = true;
   //if ((intervalStart - intervalEnd) < COUNTER_DELAY) timerState = false;
-  
+
   if (timerState) {
     counter.setTextColor(TFT_WHITE);
     counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
   } else {
     counter.setTextColor(TFT_GREEN);
     counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-    delay(5000);
   }
 
-intervalEnd_prev = intervalEnd;
-intervalStart_prev = intervalStart;
+  intervalEnd_prev = intervalEnd;
+  intervalStart_prev = intervalStart;
 
   counter.pushSprite(0, 0);
   delay(10);
 }
 
 void relayOn() {
-  timerState = !timerState;
-  if (timerState) intervalStart = micros(); 
-  if (!timerState) intervalEnd = micros();
+  timePoint = micros();
+  if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
+    timerState = !timerState;
+    if (timerState) intervalStart = micros();
+    if (!timerState) intervalEnd = micros();
+    timePointPrev = timePoint;
+  }
 }
 
 /*
