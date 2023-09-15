@@ -48,18 +48,13 @@ void setup() {
   pinMode(TIMER_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TIMER_PIN), relayOn, FALLING);
 
-  changeTimerState();
+  //changeTimerState();
+  timerState = 2;
 }
 
 void loop() {
 
-  unsigned int intervalEnd_prev;
-  unsigned int intervalStart_prev;
-  
   counter.fillSprite(TFT_BLACK);
-
-  //if ((intervalEnd - intervalStart) < COUNTER_DELAY) timerState = true;
-  //if ((intervalStart - intervalEnd) < COUNTER_DELAY) timerState = false;
 
   switch (timerState) {
     case TIMER_RUN:
@@ -71,26 +66,16 @@ void loop() {
       counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
       break;
     case TIMER_RESET:
-      counter.setTextColor(TFT_BLUE);
+      counter.setTextColor(TFT_ORANGE);
       counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
       break;
   }
-  /*
-  if (timerState) {
-    counter.setTextColor(TFT_WHITE);
-    counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-  } else {
-    counter.setTextColor(TFT_GREEN);
-    counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-  }
-*/
 
   counter.pushSprite(0, 0);
   delay(10);
 }
 
 void relayOn() {
-
   timePoint = micros();
   if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0 || timerState == 2) {
     timerState = changeTimerState();
