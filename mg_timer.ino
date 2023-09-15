@@ -11,7 +11,7 @@
 #define SCREEN_H 172
 const int TIMER_PIN = 0;
 const int RESET_PIN = 14;
-const int COUNTER_DELAY = 5000000;
+const int COUNTER_DELAY = 3000000;
 //ULONG_MAX
 
 unsigned long intervalStart = 0;
