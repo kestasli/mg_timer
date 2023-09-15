@@ -5,6 +5,8 @@
 #include <EEPROM.h>
 #include "fonts/FreeSansBold56pt7b.h"
 //#include "fonts/FreeMonoBold24pt7b.h"
+//#include "fonts/digital_732pt7b.h"
+#include "fonts/digital_7__mono_44pt7b.h"
 #include <climits>
 
 #define SCREEN_W 320
@@ -12,7 +14,7 @@
 
 
 #define TIMER_PIN 0
-#define RESET_PIN = 14
+#define RESET_PIN 14
 #define COUNTER_DELAY 3000000
 
 #define TIMER_RUN 0
@@ -40,19 +42,26 @@ void setup() {
   tft.begin();
   tft.setRotation(1);
   counter.createSprite(SCREEN_W, SCREEN_H);
-  counter.setFreeFont(&FreeSansBold56pt7b);
+  //counter.setFreeFont(&FreeSansBold56pt7b);
   //counter.setFreeFont(&FreeMonoBold24pt7b);
+  counter.setFreeFont(&digital_7__mono_44pt7b);
   counter.setTextColor(TFT_WHITE);
   counter.setTextDatum(CC_DATUM);
 
   pinMode(TIMER_PIN, INPUT_PULLUP);
+  pinMode(RESET_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TIMER_PIN), relayOn, FALLING);
+  attachInterrupt(digitalPinToInterrupt(RESET_PIN), relayOn, FALLING);
 
-  //changeTimerState();
   timerState = 2;
 }
 
 void loop() {
+/*
+https://arduino.stackexchange.com/questions/26832/how-do-i-convert-a-float-into-char
+char result[8]; // Buffer big enough for 7-character float
+dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
+*/
 
   counter.fillSprite(TFT_BLACK);
 
@@ -67,7 +76,8 @@ void loop() {
       break;
     case TIMER_RESET:
       counter.setTextColor(TFT_ORANGE);
-      counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString("00:00,00", SCREEN_W / 2, SCREEN_H / 2);
       break;
   }
 
@@ -87,11 +97,13 @@ void relayOn() {
 
 unsigned int changeTimerState() {
   static unsigned int timerState = 0;
-  if (timerState > 2) {
+  if (timerState > 1) {
     timerState = 0;
   }
   return timerState++;
 }
+
+
 
 /*
 unsigned long getInterval(unsigned long start, unsigned long end) {
