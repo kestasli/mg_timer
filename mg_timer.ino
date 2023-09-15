@@ -21,7 +21,7 @@ unsigned long timePoint = 0;
 unsigned long timePointPrev = 0;
 
 
-bool timerState = false;
+unsigned int timerState = false;
 bool intervalState = false;
 
 TFT_eSPI tft = TFT_eSPI();
@@ -47,11 +47,25 @@ void loop() {
   unsigned int intervalEnd_prev;
   unsigned int intervalStart_prev;
 
-  counter.fillSprite(TFT_BLACK);
+  //counter.fillSprite(TFT_BLACK);
 
   //if ((intervalEnd - intervalStart) < COUNTER_DELAY) timerState = true;
   //if ((intervalStart - intervalEnd) < COUNTER_DELAY) timerState = false;
 
+  switch (timerState) {
+    case 0:
+      counter.setTextColor(TFT_WHITE);
+      counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      break;
+    case 1:
+      counter.setTextColor(TFT_GREEN);
+      counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      break;
+    case 2:
+      // statements
+      break;
+  }
+  /*
   if (timerState) {
     counter.setTextColor(TFT_WHITE);
     counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
@@ -59,22 +73,29 @@ void loop() {
     counter.setTextColor(TFT_GREEN);
     counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
   }
-
-  intervalEnd_prev = intervalEnd;
-  intervalStart_prev = intervalStart;
+*/
 
   counter.pushSprite(0, 0);
   delay(10);
 }
 
 void relayOn() {
+
   timePoint = micros();
   if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
-    timerState = !timerState;
-    if (timerState) intervalStart = micros();
-    if (!timerState) intervalEnd = micros();
+    timerState = changeTimerState();
+    if (timerState) intervalStart = timePoint;
+    if (!timerState) intervalEnd = timePoint;
     timePointPrev = timePoint;
   }
+}
+
+unsigned int changeTimerState() {
+  static unsigned int timerState = 0;
+  if (timerState > 2) {
+    timerState = 0;
+  }
+  return timerState++;
 }
 
 /*
