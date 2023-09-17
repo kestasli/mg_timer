@@ -73,19 +73,18 @@ dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
   switch (timerState) {
     case TIMER_RUN:
       counter.setTextColor(TFT_WHITE);
-      //counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString(formatTime(micros() - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawString(formatTime(micros() - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
       break;
     case TIMER_STOP:
       counter.setTextColor(TFT_GREEN);
-
-      //counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString(formatTime(intervalEnd - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawString(formatTime(intervalEnd - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
       break;
     case TIMER_RESET:
       counter.setTextColor(TFT_ORANGE);
       //counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString(formatTime(10000), SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString("00:00,00", SCREEN_W / 2, SCREEN_H / 2);
       break;
   }
 
