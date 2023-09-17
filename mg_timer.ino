@@ -73,16 +73,19 @@ dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
   switch (timerState) {
     case TIMER_RUN:
       counter.setTextColor(TFT_WHITE);
-      counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString(formatTime(micros() - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
       break;
     case TIMER_STOP:
       counter.setTextColor(TFT_GREEN);
-      counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+
+      //counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString(formatTime(intervalEnd - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
       break;
     case TIMER_RESET:
       counter.setTextColor(TFT_ORANGE);
       //counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString("0:00,00", SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString(formatTime(10000), SCREEN_W / 2, SCREEN_H / 2);
       break;
   }
 
@@ -92,7 +95,7 @@ dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
 
 void relayOn() {
   timePoint = micros();
-  if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0 || timerState == 2) {
+  if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
     timerState = changeTimerState();
     if (timerState == 0) intervalStart = timePoint;
     if (timerState == 1) intervalEnd = timePoint;
@@ -108,9 +111,35 @@ unsigned int changeTimerState() {
   return timerState++;
 }
 
-char* formatTime(interval){
+//parameter is microseconds
+char* formatTime(unsigned long interval){
+  char timerDisplay[] = "00:00,00";
+  unsigned int intervalMinutes;
+  unsigned int intervalSeconds;
+  unsigned int intervalMilliseconds;
+  intervalMinutes = interval/1000000/60;
+  intervalSeconds = interval/1000000  - intervalMinutes * 60;
+  intervalMilliseconds = interval/10000;
 
+  ultoa(intervalSeconds, timerDisplay, 10);
+  return timerDisplay;
 }
+
+/*
+char * foo ()
+{
+ char buf [666] = "But does it get goat's blood out?";
+ return buf;
+}  // end of foo
+
+void setup ()
+{
+  Serial.begin (115200);
+  Serial.println (foo ());
+}  // end of setup
+void loop () {}
+/*
+
 
 /*
 unsigned long getInterval(unsigned long start, unsigned long end) {
