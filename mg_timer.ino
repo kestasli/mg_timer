@@ -6,8 +6,9 @@
 //#include "fonts/FreeSansBold56pt7b.h"
 //#include "fonts/FreeMonoBold24pt7b.h"
 //#include "fonts/digital_732pt7b.h"
-#include "fonts/digital_7__mono_44pt7b.h"
+//#include "fonts/digital_7__mono_44pt7b.h"
 //#include "fonts/3X5_56pt7b.h"
+#include "fonts/Bajigoor_SW_Demo58pt7b.h"
 #include <climits>
 
 #define SCREEN_W 320
@@ -46,11 +47,12 @@ void setup() {
   counter.createSprite(SCREEN_W, SCREEN_H);
   //counter.setFreeFont(&FreeSansBold56pt7b);
   //counter.setFreeFont(&FreeMonoBold24pt7b);
-  counter.setFreeFont(&digital_7__mono_44pt7b);
+  //counter.setFreeFont(&digital_7__mono_44pt7b);
   //counter.setFreeFont(&f3X5_____56pt7b);
+  counter.setFreeFont(&Bajigoor_SW_Demo58pt7b);
   
   counter.setTextColor(TFT_WHITE);
-  counter.setTextDatum(CC_DATUM);
+  counter.setTextDatum(CL_DATUM);
 
   pinMode(TIMER_PIN, INPUT_PULLUP);
   //pinMode(RESET_PIN, INPUT_PULLUP);
@@ -62,7 +64,7 @@ void setup() {
 }
 
 void loop() {
-/*
+  /*
 https://arduino.stackexchange.com/questions/26832/how-do-i-convert-a-float-into-char
 char result[8]; // Buffer big enough for 7-character float
 dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
@@ -73,18 +75,18 @@ dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
   switch (timerState) {
     case TIMER_RUN:
       counter.setTextColor(TFT_WHITE);
-      counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      //counter.drawString(formatTime(micros() - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString(formatTime(micros() - intervalStart), 20, SCREEN_H / 2);
       break;
     case TIMER_STOP:
       counter.setTextColor(TFT_GREEN);
-      counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      //counter.drawString(formatTime(intervalEnd - intervalStart), SCREEN_W / 2, SCREEN_H / 2);
+      //counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString(formatTime(intervalEnd - intervalStart), 20, SCREEN_H / 2);
       break;
     case TIMER_RESET:
       counter.setTextColor(TFT_ORANGE);
       //counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString("00:00,00", SCREEN_W / 2, SCREEN_H / 2);
+      counter.drawString("0:00,00", 20, SCREEN_H / 2);
       break;
   }
 
@@ -104,7 +106,7 @@ void relayOn() {
 
 unsigned int changeTimerState() {
   static unsigned int timerState = 0;
-  if (timerState > 1) {
+  if (timerState > 2) {
     timerState = 0;
   }
   return timerState++;
@@ -112,15 +114,20 @@ unsigned int changeTimerState() {
 
 //parameter is microseconds
 char* formatTime(unsigned long interval){
-  char timerDisplay[] = "00:00,00";
-  unsigned int intervalMinutes;
-  unsigned int intervalSeconds;
-  unsigned int intervalMilliseconds;
-  intervalMinutes = interval/1000000/60;
-  intervalSeconds = interval/1000000  - intervalMinutes * 60;
-  intervalMilliseconds = interval/10000;
+  static char timerDisplay[9];
+  char secondsString[6];
+  unsigned long intervalMinutes;
+  float intervalSeconds;
 
-  ultoa(intervalSeconds, timerDisplay, 10);
+  intervalMinutes = interval/1000/1000/60;
+  intervalSeconds = (interval - intervalMinutes * 60*1000*1000)/1000000.0;
+  dtostrf(intervalSeconds, 4, 2, secondsString);
+  if (intervalSeconds < 10) {
+    sprintf(timerDisplay, "%u:0%s", intervalMinutes, secondsString);
+  } else {
+    sprintf(timerDisplay, "%u:%s", intervalMinutes, secondsString);
+  }
+  
   return timerDisplay;
 }
 
