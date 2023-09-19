@@ -7,8 +7,8 @@
 //#include "fonts/FreeMonoBold24pt7b.h"
 //#include "fonts/digital_732pt7b.h"
 //#include "fonts/digital_7__mono_44pt7b.h"
-//#include "fonts/3X5_56pt7b.h"
-#include "fonts/Bajigoor_SW_Demo58pt7b.h"
+#include "fonts/3X5_____52pt7b.h"
+//#include "fonts/Bajigoor_SW_Demo58pt7b.h"
 #include <climits>
 
 #define SCREEN_W 320
@@ -48,8 +48,8 @@ void setup() {
   //counter.setFreeFont(&FreeSansBold56pt7b);
   //counter.setFreeFont(&FreeMonoBold24pt7b);
   //counter.setFreeFont(&digital_7__mono_44pt7b);
-  //counter.setFreeFont(&f3X5_____56pt7b);
-  counter.setFreeFont(&Bajigoor_SW_Demo58pt7b);
+  counter.setFreeFont(&f3X5_____52pt7b);
+  //counter.setFreeFont(&Bajigoor_SW_Demo58pt7b);
   
   counter.setTextColor(TFT_WHITE);
   counter.setTextDatum(CL_DATUM);
@@ -76,17 +76,17 @@ dtostrf(resistance, 6, 2, result); // Leave room for too large numbers!
     case TIMER_RUN:
       counter.setTextColor(TFT_WHITE);
       //counter.drawFloat((float)(micros() - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString(formatTime(micros() - intervalStart), 20, SCREEN_H / 2);
+      counter.drawString(formatTime(micros() - intervalStart), 0, SCREEN_H/2);
       break;
     case TIMER_STOP:
       counter.setTextColor(TFT_GREEN);
       //counter.drawFloat((float)(intervalEnd - intervalStart) / 1000000, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString(formatTime(intervalEnd - intervalStart), 20, SCREEN_H / 2);
+      counter.drawString(formatTime(intervalEnd - intervalStart), 0, SCREEN_H/2);
       break;
     case TIMER_RESET:
       counter.setTextColor(TFT_ORANGE);
       //counter.drawFloat(0.0, 2, SCREEN_W / 2, SCREEN_H / 2);
-      counter.drawString("0:00,00", 20, SCREEN_H / 2);
+      counter.drawString("0:00,00", 0, SCREEN_H/2);
       break;
   }
 
@@ -106,7 +106,7 @@ void relayOn() {
 
 unsigned int changeTimerState() {
   static unsigned int timerState = 0;
-  if (timerState > 2) {
+  if (timerState > 1) {
     timerState = 0;
   }
   return timerState++;
