@@ -4,7 +4,7 @@
 //#include <WiFiManager.h>
 //#include <EEPROM.h>
 //#include "fonts/3X5_____52pt7b.h"
-//#include <climits>
+//#include <climits.h>
 
 #include "LedController.hpp"
 
@@ -12,13 +12,10 @@
 #define CS 10
 #define Segments 5
 
-
-//#define SCREEN_W 320
-//#define SCREEN_H 172
-
 #define RELAY_PIN 2
 #define COUNTER_DELAY 3000000
 
+//timer states
 #define TIMER_RUN 0
 #define TIMER_STOP 1
 #define TIMER_RESET 2
@@ -120,7 +117,6 @@ ByteBlock digits[10] = {
     0b01100100 }
 };
 
-
 void setup() {
 
   lc = LedController<Segments, 1>(CS);
@@ -132,37 +128,27 @@ void setup() {
     lc.setIntensity(15);
   }
 
-  //pinMode(TIMER_PIN, INPUT_PULLUP);
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
-  //attachInterrupt(digitalPinToInterrupt(TIMER_PIN), relayOn, FALLING);
 
   timerState = 2;
 }
 
 void loop() {
-  //showTime(counter);
-  
+ 
   switch (timerState) {
     case TIMER_RUN:
       showTime(micros() - intervalStart);
-      //counter.setTextColor(TFT_WHITE);
-      //counter.drawString(formatTime(micros() - intervalStart), 0, SCREEN_H / 2);
       break;
     case TIMER_STOP:
       showTime(intervalEnd - intervalStart);
-      //counter.setTextColor(TFT_GREEN);
-      //counter.drawString(formatTime(intervalEnd - intervalStart), 0, SCREEN_H / 2);
       break;
     case TIMER_RESET:
       showTime(0);
-      //counter.setTextColor(TFT_WHITE);
-      //counter.drawString("0'00,00", 0, SCREEN_H / 2);
       break;
   }
   
-  //counter = counter + 10000;
-  delay(10);
+  delay(20);
 }
 
 void relayOn() {
@@ -198,43 +184,9 @@ void showTime(unsigned long interval) {
   lc.displayOnSegment(3, digits[ms / 10]);
   lc.displayOnSegment(4, digits[ms - 10 * (ms / 10)]);
 
+  //display semicolon and comma
   lc.setLed(0, 6, 5, true);
   lc.setLed(0, 6, 2, true);
   lc.setLed(2, 6, 6, true);
   lc.setLed(2, 6, 7, true);
 }
-
-
-
-
-//parameter is microseconds
-char* formatTime(unsigned long interval) {
-  static char timerDisplay[9];
-  char secondsString[6];
-  unsigned long intervalMinutes;
-  float intervalSeconds;
-
-  intervalMinutes = interval / 1000 / 1000 / 60;
-  intervalSeconds = (interval - intervalMinutes * 60 * 1000 * 1000) / 1000000.0;
-  dtostrf(intervalSeconds, 4, 2, secondsString);
-  if (intervalSeconds < 10) {
-    sprintf(timerDisplay, "%u'0%s", intervalMinutes, secondsString);
-  } else {
-    sprintf(timerDisplay, "%u'%s", intervalMinutes, secondsString);
-  }
-  return timerDisplay;
-}
-
-
-
-
-/*
-unsigned long getInterval(unsigned long start, unsigned long end) {
-  unsigned long diff = start - end;
-  if (start <= end) {
-    return abs(diff);
-  } else {
-    return abs(diff - ULONG_MAX);
-  }
-}
-*/
