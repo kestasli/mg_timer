@@ -135,7 +135,7 @@ void setup() {
 }
 
 void loop() {
- 
+
   switch (timerState) {
     case TIMER_RUN:
       showTime(micros() - intervalStart);
@@ -147,8 +147,8 @@ void loop() {
       showTime(0);
       break;
   }
-  
-  delay(20);
+
+  delay(30);
 }
 
 void relayOn() {
@@ -170,23 +170,27 @@ unsigned int changeTimerState() {
 }
 
 void showTime(unsigned long interval) {
-  unsigned long min = interval / 1000000 / 60;
-  unsigned long minRemainder = interval - min * 1000000 * 60;
-  unsigned long sec = minRemainder / 1000000;
-  unsigned long secReminder = minRemainder - sec * 1000000 + 5000;
-  unsigned long ms = secReminder / 10000;
+  if (interval < 600000000) {
+    unsigned long min = interval / 1000000 / 60;
+    unsigned long minRemainder = interval - min * 1000000 * 60;
+    unsigned long sec = minRemainder / 1000000;
+    unsigned long secReminder = minRemainder - sec * 1000000 + 5000;
+    unsigned long ms = secReminder / 10000;
 
-  lc.displayOnSegment(0, digits[min]);
+    lc.displayOnSegment(0, digits[min]);
 
-  lc.displayOnSegment(1, digits[sec / 10]);
-  lc.displayOnSegment(2, digits[sec - 10 * (sec / 10)]);
+    lc.displayOnSegment(1, digits[sec / 10]);
+    lc.displayOnSegment(2, digits[sec - 10 * (sec / 10)]);
 
-  lc.displayOnSegment(3, digits[ms / 10]);
-  lc.displayOnSegment(4, digits[ms - 10 * (ms / 10)]);
+    lc.displayOnSegment(3, digits[ms / 10]);
+    lc.displayOnSegment(4, digits[ms - 10 * (ms / 10)]);
 
-  //display semicolon and comma
-  lc.setLed(0, 6, 5, true);
-  lc.setLed(0, 6, 2, true);
-  lc.setLed(2, 6, 6, true);
-  lc.setLed(2, 6, 7, true);
+    //display semicolon and comma
+    lc.setLed(0, 6, 5, true);
+    lc.setLed(0, 6, 2, true);
+    lc.setLed(2, 6, 6, true);
+    lc.setLed(2, 6, 7, true);
+  } else {
+    interval = 600000000 - 1;
+  }
 }
