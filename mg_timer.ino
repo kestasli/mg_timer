@@ -148,7 +148,7 @@ void loop() {
       break;
   }
 
-  delay(30);
+  delay(10);
 }
 
 void relayOn() {
