@@ -8,8 +8,22 @@
 
 #include "LedController.hpp"
 
+/*
+ The master has three significant pins: SCLK(Serial Clock), MOSI(Master Out Slave In), SS(Slave Select).
+ The slave also has tree needed pins (and two for power(GND and VCC)): CLK(Clock), DIN(Data In), CS(Ship Select).
+ SCLK has to be connected to CLK and MOSI to DIN.
+ These signals can be shared by multiple SPI slaves even if they have nothing to do with each other.
+ SS has to be connected to CS and each Slave has its own SS pin(which can be any free pin).
+ */
+
 //the pin where the chip select is connected to
-#define CS 10
+#define CS 1
+
+//CS0  10
+//SCLK 12
+//MISO 13
+//MOSI 11
+
 #define Segments 5
 
 #define RELAY_PIN 2
@@ -23,7 +37,7 @@
 unsigned long counter = 0;
 //ULONG_MAX
 
-LedController<Segments, 1> lc;
+LedController<Segments, 1> lc = LedController<Segments, 1>();
 
 unsigned long intervalStart = 0;
 unsigned long intervalEnd = 0;
@@ -35,98 +49,117 @@ unsigned int timerState = false;
 bool intervalState = false;
 
 ByteBlock digits[10] = {
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b01111100,
-    0b10100010,
-    0b10010010,
-    0b10001010,
+  { 0b00111000,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b00111000 },
+  { 0b00010000,
+    0b00110000,
+    0b00010000,
+    0b00010000,
+    0b00010000,
+    0b00010000,
+    0b00010000,
+    0b00111000 },
+  { 0b00111000,
+    0b01000100,
+    0b00000100,
+    0b00000100,
+    0b00001000,
+    0b00010000,
+    0b00100000,
     0b01111100 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000010,
-    0b11111110,
-    0b01000010,
-    0b00000000 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b01100010,
-    0b10010010,
-    0b10001010,
-    0b10000110,
-    0b01000010 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b01101100,
-    0b10010010,
-    0b10010010,
-    0b10010010,
-    0b01000100 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b11111110,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b11110000 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b10001100,
-    0b10010010,
-    0b10010010,
-    0b10010010,
-    0b11110010 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
+  { 0b00111000,
+    0b01000100,
+    0b00000100,
+    0b00011000,
+    0b00000100,
+    0b00000100,
+    0b01000100,
+    0b00111000 },
+  { 0b00000100,
     0b00001100,
-    0b10010010,
-    0b10010010,
-    0b10010010,
-    0b01111100 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b11100000,
-    0b10010000,
-    0b10001110,
-    0b10000000,
-    0b10000000 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
-    0b01101100,
-    0b10010010,
-    0b10010010,
-    0b10010010,
-    0b01101100 },
-  { 0b00000000,
-    0b00000000,
-    0b00000000,
+    0b00010100,
+    0b00100100,
+    0b01000100,
     0b01111100,
-    0b10010010,
-    0b10010010,
-    0b10010010,
-    0b01100100 }
+    0b00000100,
+    0b00000100 },
+  { 0b01111100,
+    0b01000000,
+    0b01000000,
+    0b01111000,
+    0b00000100,
+    0b00000100,
+    0b01000100,
+    0b00111000 },
+  { 0b00111000,
+    0b01000100,
+    0b01000000,
+    0b01111000,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b00111000 },
+  { 0b01111100,
+    0b00000100,
+    0b00000100,
+    0b00001000,
+    0b00010000,
+    0b00100000,
+    0b00100000,
+    0b00100000 },
+  { 0b00111000,
+    0b01000100,
+    0b01000100,
+    0b00111000,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b00111000 },
+  { 0b00111000,
+    0b01000100,
+    0b01000100,
+    0b01000100,
+    0b00111100,
+    0b00000100,
+    0b01000100,
+    0b00111000 }
 };
 
 void setup() {
 
-  lc = LedController<Segments, 1>(CS);
-  pinMode(13, OUTPUT);
+  controller_configuration<Segments, 1> conf;
+  //use the specified CS pin
+  conf.SPI_CS = CS;
+  //set the transfer speed to the highest stable value
+  conf.spiTransferSpeed = 10000000;
+  //enable hardware spi
+  conf.useHardwareSpi = true;
+
+  //init the controller from the configuration
+  lc.init(conf);
+
+  //set the brightness as low as possible
+  lc.setIntensity(10);
+
+  //lc = LedController<Segments, 1>(CS);
+
+  //pinMode(1, OUTPUT);
+  //pinMode(2, OUTPUT);
+  //pinMode(3, OUTPUT);
+
   for (unsigned int i = 0; i < 10; i++) {
     //void;
     digits[i] = digits[i].rotate180();
     lc.clearMatrix();
     lc.setIntensity(15);
   }
+
 
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
@@ -186,10 +219,10 @@ void showTime(unsigned long interval) {
     lc.displayOnSegment(4, digits[ms - 10 * (ms / 10)]);
 
     //display semicolon and comma
-    lc.setLed(0, 6, 5, true);
-    lc.setLed(0, 6, 2, true);
-    lc.setLed(2, 6, 6, true);
-    lc.setLed(2, 6, 7, true);
+    lc.setLed(0, 5, 7, true);
+    lc.setLed(0, 2, 7, true);
+    lc.setLed(2, 1, 7, true);
+    lc.setLed(2, 0, 7, true);
   } else {
     interval = 600000000 - 1;
   }
