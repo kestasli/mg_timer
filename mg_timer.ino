@@ -133,8 +133,6 @@ ByteBlock digits[10] = {
 
 void setup() {
 
-  Serial.begin(115200);
-
   controller_configuration<Segments, 1> conf;
   //use the specified CS pin
   conf.SPI_CS = CS;
@@ -142,26 +140,16 @@ void setup() {
   conf.spiTransferSpeed = 10000000;
   //enable hardware spi
   conf.useHardwareSpi = true;
-
   //init the controller from the configuration
   lc.init(conf);
-
-  //set the brightness as low as possible
-  lc.setIntensity(10);
-
-  //lc = LedController<Segments, 1>(CS);
-
-  //pinMode(1, OUTPUT);
-  //pinMode(2, OUTPUT);
-  //pinMode(3, OUTPUT);
+  //set the brightness
+  lc.setIntensity(15);
 
   for (unsigned int i = 0; i < 10; i++) {
     //void;
     digits[i] = digits[i].rotate180();
     lc.clearMatrix();
-    lc.setIntensity(15);
   }
-
 
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
@@ -183,7 +171,7 @@ void loop() {
       break;
   }
 
-  delay(20);
+  delay(15);
 }
 
 void relayOn() {
