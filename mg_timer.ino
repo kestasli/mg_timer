@@ -133,6 +133,8 @@ ByteBlock digits[10] = {
 
 void setup() {
 
+  Serial.begin(115200);
+
   controller_configuration<Segments, 1> conf;
   //use the specified CS pin
   conf.SPI_CS = CS;
@@ -181,7 +183,7 @@ void loop() {
       break;
   }
 
-  delay(10);
+  delay(20);
 }
 
 void relayOn() {
@@ -204,19 +206,17 @@ unsigned int changeTimerState() {
 
 void showTime(unsigned long interval) {
   if (interval < 600000000) {
-    unsigned long min = interval / 1000000 / 60;
-    unsigned long minRemainder = interval - min * 1000000 * 60;
-    unsigned long sec = minRemainder / 1000000;
-    unsigned long secReminder = minRemainder - sec * 1000000 + 5000;
-    unsigned long ms = secReminder / 10000;
 
-    lc.displayOnSegment(0, digits[min]);
+    //this will round up to the nearest 100ts of miliseconds
+    unsigned long interval_rounded = interval + 5000;
+    unsigned long minutes = interval_rounded / 1000000 / 60;
+    unsigned long interval_nominutes = interval_rounded - minutes * 1000000 * 60;
 
-    lc.displayOnSegment(1, digits[sec / 10]);
-    lc.displayOnSegment(2, digits[sec - 10 * (sec / 10)]);
-
-    lc.displayOnSegment(3, digits[ms / 10]);
-    lc.displayOnSegment(4, digits[ms - 10 * (ms / 10)]);
+    lc.displayOnSegment(0, digits[minutes]);
+    lc.displayOnSegment(1, digits[interval_nominutes / 10000000 % 10]);
+    lc.displayOnSegment(2, digits[interval_nominutes / 1000000 % 10]);
+    lc.displayOnSegment(3, digits[interval_nominutes / 100000 % 10]);
+    lc.displayOnSegment(4, digits[interval_nominutes / 10000 % 10]);
 
     //display semicolon and comma
     lc.setLed(0, 5, 7, true);
