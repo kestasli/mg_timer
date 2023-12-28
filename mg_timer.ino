@@ -1,11 +1,3 @@
-//#include <TFT_eSPI.h>  // Hardware-specific library
-//#include <SPI.h>
-//#include "WiFi.h"
-//#include <WiFiManager.h>
-//#include <EEPROM.h>
-//#include "fonts/3X5_____52pt7b.h"
-//#include <climits.h>
-
 #include "LedController.hpp"
 
 /*
@@ -33,6 +25,9 @@
 #define TIMER_RUN 0
 #define TIMER_STOP 1
 #define TIMER_RESET 2
+
+unsigned long display_delay = 40;
+unsigned long previous_time = 0;
 
 unsigned long counter = 0;
 //ULONG_MAX
@@ -143,7 +138,7 @@ void setup() {
   //init the controller from the configuration
   lc.init(conf);
   //set the brightness
-  lc.setIntensity(15);
+  lc.setIntensity(10);
 
   for (unsigned int i = 0; i < 10; i++) {
     //void;
@@ -154,24 +149,27 @@ void setup() {
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
 
-  timerState = 2;
+  timerState = TIMER_RESET;
 }
 
 void loop() {
+  unsigned long current_time = millis();
 
-  switch (timerState) {
-    case TIMER_RUN:
-      showTime(micros() - intervalStart);
-      break;
-    case TIMER_STOP:
-      showTime(intervalEnd - intervalStart);
-      break;
-    case TIMER_RESET:
-      showTime(0);
-      break;
+  if (current_time - previous_time >= display_delay) {
+    switch (timerState) {
+      case TIMER_RUN:
+        showTime(micros() - intervalStart);
+        break;
+      case TIMER_STOP:
+        showTime(intervalEnd - intervalStart);
+        break;
+      case TIMER_RESET:
+        showTime(0);
+        break;
+    }
+    //delay(50);
+    previous_time = current_time;
   }
-
-  delay(15);
 }
 
 void relayOn() {
@@ -193,8 +191,10 @@ unsigned int changeTimerState() {
 }
 
 void showTime(unsigned long interval) {
-  if (interval < 600000000) {
+  //Max measurement interval is 9min, 59s, 99ms
+  //Only update display if interval is less that capacity of display
 
+  if (interval < 600000000) {
     //this will round up to the nearest 100ts of miliseconds
     unsigned long interval_rounded = interval + 5000;
     unsigned long minutes = interval_rounded / 1000000 / 60;
@@ -207,11 +207,17 @@ void showTime(unsigned long interval) {
     lc.displayOnSegment(4, digits[interval_nominutes / 10000 % 10]);
 
     //display semicolon and comma
-    lc.setLed(0, 5, 7, true);
-    lc.setLed(0, 2, 7, true);
+    //lc.setLed(0, 5, 7, true);
+    //lc.setLed(0, 2, 7, true);
+    lc.setLed(0, 1, 7, true);
+    lc.setLed(0, 0, 7, true);
     lc.setLed(2, 1, 7, true);
     lc.setLed(2, 0, 7, true);
   } else {
-    interval = 600000000 - 1;
+    lc.displayOnSegment(0, digits[9]);
+    lc.displayOnSegment(1, digits[5]);
+    lc.displayOnSegment(2, digits[9]);
+    lc.displayOnSegment(3, digits[9]);
+    lc.displayOnSegment(4, digits[9]);
   }
 }
