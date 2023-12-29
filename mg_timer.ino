@@ -19,7 +19,7 @@
 #define Segments 5
 
 #define RELAY_PIN 2
-#define COUNTER_DELAY 3000000
+#define COUNTER_DELAY 2000000
 
 //timer states
 #define TIMER_RUN 0
@@ -40,8 +40,8 @@ unsigned long intervalEnd = 0;
 unsigned long timePoint = 0;
 unsigned long timePointPrev = 0;
 
-unsigned int timerState = false;
-bool intervalState = false;
+//unsigned int timerState = false;
+bool timerState = false;  //true- time counting, false- stopped
 
 ByteBlock digits[10] = {
   { 0b00111000,
@@ -132,7 +132,9 @@ void setup() {
   //use the specified CS pin
   conf.SPI_CS = CS;
   //set the transfer speed to the highest stable value
-  conf.spiTransferSpeed = 10000000;
+  //conf.spiTransferSpeed = 10000000;
+
+  conf.onlySendOnChange = true;
   //enable hardware spi
   conf.useHardwareSpi = true;
   //init the controller from the configuration
@@ -148,30 +150,31 @@ void setup() {
 
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
-
-  timerState = TIMER_RESET;
 }
 
 void loop() {
-  unsigned long current_time = millis();
 
-  if (current_time - previous_time >= display_delay) {
-    switch (timerState) {
-      case TIMER_RUN:
-        showTime(micros() - intervalStart);
-        break;
-      case TIMER_STOP:
-        showTime(intervalEnd - intervalStart);
-        break;
-      case TIMER_RESET:
-        showTime(0);
-        break;
-    }
-    //delay(50);
-    previous_time = current_time;
+  if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
+    timerState = !timerState;
+    if (timerState) intervalStart = timePoint;
+    if (!timerState) intervalEnd = timePoint;
+    timePointPrev = timePoint;
   }
+
+  if (timerState) {
+    showTime(micros() - intervalStart);
+  } else {
+    showTime(intervalEnd - intervalStart);
+  }
+
+  delay(21);
 }
 
+
+void relayOn() {
+  timePoint = micros();
+}
+/*
 void relayOn() {
   timePoint = micros();
   if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
@@ -181,7 +184,7 @@ void relayOn() {
     timePointPrev = timePoint;
   }
 }
-
+*/
 unsigned int changeTimerState() {
   static unsigned int timerState = 0;
   if (timerState > 1) {
