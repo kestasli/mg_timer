@@ -9,15 +9,15 @@
  */
 
 //the pin where the chip select is connected to
-#define CS 1 //esp32
+#define CS 1  //esp32
 //#define DIN 11
 //#define CS 10 //Arduino Pro Mini
 //#define CLK 13
 
 
-//pin 12 is connected to the DataIn 
-//pin 11 is connected to the CLK 
-//pin 10 is connected to LOAD 
+//pin 12 is connected to the DataIn
+//pin 11 is connected to the CLK
+//pin 10 is connected to LOAD
 
 //CS0  10
 //SCLK 12
@@ -214,6 +214,7 @@ void setup() {
   conf.SPI_CS = CS;
   //set the transfer speed to the highest stable value
   //conf.spiTransferSpeed = 10000000;
+  conf.spiTransferSpeed = 6000000;
   conf.onlySendOnChange = true;
   //enable hardware spi
   conf.useHardwareSpi = true;
@@ -223,7 +224,6 @@ void setup() {
   lc.setIntensity(10);
 
   for (unsigned int i = 0; i < 10; i++) {
-    //void;
     digits[i] = digits[i].rotate180();
     digits_c[i] = digits_c[i].rotate180();
     lc.clearMatrix();
@@ -231,12 +231,10 @@ void setup() {
 
   pinMode(RELAY_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(RELAY_PIN), relayOn, FALLING);
-
 }
 
 void loop() {
 
-  //if (((timePoint - timePointPrev) > COUNTER_DELAY) || timePoint == 0) {
   if ((timePoint - timePointPrev) > COUNTER_DELAY) {
 
     timerState = !timerState;
