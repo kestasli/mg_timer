@@ -43,16 +43,20 @@ unsigned long timePointPrev = 0;
 bool timerState = false;  //true- time counting, false- stopped
 
 void setup() {
-
+  Serial.begin(115200);
+  Serial.println(("Serial started"));
   controller_configuration<Segments, 1> conf;
   //use the specified CS pin
   conf.SPI_CS = CS;
   //set the transfer speed to the highest stable value
   //conf.spiTransferSpeed = 10000000;
-  conf.spiTransferSpeed = 6000000;
+  conf.spiTransferSpeed = 4000000;
   conf.onlySendOnChange = true;
   //enable hardware spi
   conf.useHardwareSpi = true;
+  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //conf.debug_output = true;
+  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //init the controller from the configuration
   lc.init(conf);
   //set the brightness
@@ -77,7 +81,6 @@ void loop() {
     timePointPrev = timePoint;
   }
 
-  //
   current_time = millis();
   if (current_time - previous_time >= DISPLAY_DELAY) {
     if (timerState) showTime(micros() - intervalStart);
@@ -85,9 +88,7 @@ void loop() {
     previous_time = current_time;
   }
   
-  //delay(10);
 }
-
 
 void relayOn() {
   //only grab time when relay is ON
@@ -108,11 +109,6 @@ void showTime(unsigned long interval) {
     lc.displayOnSegment(2, digits_c[interval_nominutes / 1000000 % 10]);
     lc.displayOnSegment(3, digits[interval_nominutes / 100000 % 10]);
     lc.displayOnSegment(4, digits[interval_nominutes / 10000 % 10]);
-    //display semicolon and comma
-    //lc.setLed(0, 1, 7, true);
-    //lc.setLed(0, 0, 7, true);
-    //lc.setLed(2, 1, 7, true);
-    //lc.setLed(2, 0, 7, true);
 
   } else {
     lc.displayOnSegment(0, digits_c[9]);
