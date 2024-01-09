@@ -1,4 +1,5 @@
 #include "LedController.hpp"
+#include "fonts.h"
 
 /*
  The master has three significant pins: SCLK(Serial Clock), MOSI(Master Out Slave In), SS(Slave Select).
@@ -27,8 +28,10 @@
 #define Segments 5
 
 #define RELAY_PIN 2
-#define COUNTER_DELAY 2000000
-
+#define COUNTER_DELAY 3000000     //shortest interval delay in us
+#define DISPLAY_DELAY 15          //delay pushing data to the LED matrix
+unsigned long previous_time = 0;  //prev timepoint for pushing tada to the display
+unsigned long current_time = 0;
 //ULONG_MAX
 
 LedController<Segments, 1> lc = LedController<Segments, 1>();
@@ -38,174 +41,6 @@ unsigned long intervalEnd = 1;
 unsigned long timePoint = 0;
 unsigned long timePointPrev = 0;
 bool timerState = false;  //true- time counting, false- stopped
-
-
-ByteBlock digits[10] = {
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b00111000 },
-  { 0b00010000,
-    0b00110000,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b00111000 },
-  { 0b00111000,
-    0b01000100,
-    0b00000100,
-    0b00000100,
-    0b00001000,
-    0b00010000,
-    0b00100000,
-    0b01111100 },
-  { 0b00111000,
-    0b01000100,
-    0b00000100,
-    0b00011000,
-    0b00000100,
-    0b00000100,
-    0b01000100,
-    0b00111000 },
-  { 0b00000100,
-    0b00001100,
-    0b00010100,
-    0b00100100,
-    0b01000100,
-    0b01111100,
-    0b00000100,
-    0b00000100 },
-  { 0b01111100,
-    0b01000000,
-    0b01000000,
-    0b01111000,
-    0b00000100,
-    0b00000100,
-    0b01000100,
-    0b00111000 },
-  { 0b00111000,
-    0b01000100,
-    0b01000000,
-    0b01111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b00111000 },
-  { 0b01111100,
-    0b00000100,
-    0b00000100,
-    0b00001000,
-    0b00010000,
-    0b00100000,
-    0b00100000,
-    0b00100000 },
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b00111000 },
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b00111100,
-    0b00000100,
-    0b01000100,
-    0b00111000 }
-};
-
-ByteBlock digits_c[10] = {
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b01000101,
-    0b00111001 },
-  { 0b00010000,
-    0b00110000,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b00010000,
-    0b00010001,
-    0b00111001 },
-  { 0b00111000,
-    0b01000100,
-    0b00000100,
-    0b00000100,
-    0b00001000,
-    0b00010000,
-    0b00100001,
-    0b01111101 },
-  { 0b00111000,
-    0b01000100,
-    0b00000100,
-    0b00011000,
-    0b00000100,
-    0b00000100,
-    0b01000101,
-    0b00111001 },
-  { 0b00000100,
-    0b00001100,
-    0b00010100,
-    0b00100100,
-    0b01000100,
-    0b01111100,
-    0b00000101,
-    0b00000101 },
-  { 0b01111100,
-    0b01000000,
-    0b01000000,
-    0b01111000,
-    0b00000100,
-    0b00000100,
-    0b01000101,
-    0b00111001 },
-  { 0b00111000,
-    0b01000100,
-    0b01000000,
-    0b01111000,
-    0b01000100,
-    0b01000100,
-    0b01000101,
-    0b00111001 },
-  { 0b01111100,
-    0b00000100,
-    0b00000100,
-    0b00001000,
-    0b00010000,
-    0b00100000,
-    0b00100001,
-    0b00100001 },
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000101,
-    0b00111001 },
-  { 0b00111000,
-    0b01000100,
-    0b01000100,
-    0b01000100,
-    0b00111100,
-    0b00000100,
-    0b01000101,
-    0b00111001 }
-};
-
 
 void setup() {
 
@@ -236,16 +71,21 @@ void setup() {
 void loop() {
 
   if ((timePoint - timePointPrev) > COUNTER_DELAY) {
-
     timerState = !timerState;
     if (timerState) intervalStart = timePoint;
     if (!timerState) intervalEnd = timePoint;
     timePointPrev = timePoint;
   }
 
-  if (timerState) showTime(micros() - intervalStart);
-  if (!timerState) showTime(intervalEnd - intervalStart);
-  delay(10);
+  //
+  current_time = millis();
+  if (current_time - previous_time >= DISPLAY_DELAY) {
+    if (timerState) showTime(micros() - intervalStart);
+    if (!timerState) showTime(intervalEnd - intervalStart);
+    previous_time = current_time;
+  }
+  
+  //delay(10);
 }
 
 
