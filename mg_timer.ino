@@ -29,7 +29,7 @@
 
 #define RELAY_PIN 2
 #define COUNTER_DELAY 3000000     //shortest interval delay in us
-#define DISPLAY_DELAY 15          //delay pushing data to the LED matrix
+#define DISPLAY_DELAY 12          //delay pushing data to the LED matrix
 unsigned long previous_time = 0;  //prev timepoint for pushing tada to the display
 unsigned long current_time = 0;
 //ULONG_MAX
@@ -49,13 +49,12 @@ void setup() {
   //use the specified CS pin
   conf.SPI_CS = CS;
   //set the transfer speed to the highest stable value
-  //conf.spiTransferSpeed = 10000000;
-  conf.spiTransferSpeed = 4000000;
+  conf.spiTransferSpeed = 26000000;
   conf.onlySendOnChange = true;
   //enable hardware spi
   conf.useHardwareSpi = true;
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //conf.debug_output = true;
+  conf.debug_output = true;
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //init the controller from the configuration
   lc.init(conf);
