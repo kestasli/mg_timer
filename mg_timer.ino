@@ -43,8 +43,6 @@ unsigned long timePointPrev = 0;
 bool timerState = false;  //true- time counting, false- stopped
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println(("Serial started"));
   controller_configuration<Segments, 1> conf;
   //use the specified CS pin
   conf.SPI_CS = CS;
@@ -54,12 +52,12 @@ void setup() {
   //enable hardware spi
   conf.useHardwareSpi = true;
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  conf.debug_output = true;
+  //conf.debug_output = true;
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //init the controller from the configuration
   lc.init(conf);
   //set the brightness
-  lc.setIntensity(10);
+  lc.setIntensity(15);
 
   for (unsigned int i = 0; i < 10; i++) {
     digits[i] = digits[i].rotate180();
@@ -80,13 +78,17 @@ void loop() {
     timePointPrev = timePoint;
   }
 
+  /*
   current_time = millis();
   if (current_time - previous_time >= DISPLAY_DELAY) {
     if (timerState) showTime(micros() - intervalStart);
     if (!timerState) showTime(intervalEnd - intervalStart);
     previous_time = current_time;
   }
-  
+  */
+  if (timerState) showTime(micros() - intervalStart);
+  if (!timerState) showTime(intervalEnd - intervalStart);
+
 }
 
 void relayOn() {

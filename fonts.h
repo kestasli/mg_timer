@@ -81,6 +81,9 @@ ByteBlock digits[10] = {
     0b00111000 }
 };
 
+//it seems display works more smoothly when whole block with comma
+//is pushed out
+
 ByteBlock digits_c[10] = {
   { 0b00111000,
     0b01000100,
